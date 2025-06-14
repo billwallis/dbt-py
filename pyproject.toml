@@ -7,7 +7,7 @@ name = "dbt-py-wrap"  # Not `dbt-py` to avoid confusion with the DbtPy package (
 version = "0.0.4"
 description = "Python wrapper for dbt-core to extend dbt with custom Python."
 readme = "README.md"
-authors = [{name = "Bilbottom"}]
+authors = [{name = "billwallis"}]
 requires-python = ">=3.11"
 dependencies = [
     "dbt-core>=1.5.0",
