@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dbt-py-wrap"  # Not `dbt-py` to avoid confusion with the DbtPy package (PyPI requirement)
-version = "0.0.4"
+version = "0.0.5"
 description = "Python wrapper for dbt-core to extend dbt with custom Python."
 readme = "README.md"
 authors = [{name = "billwallis"}]
@@ -30,6 +30,13 @@ test = [
 
 [tool.setuptools]
 packages = ["dbt_py"]
+
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
 
 
 [tool.pytest.ini_options]
