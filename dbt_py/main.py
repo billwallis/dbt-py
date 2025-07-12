@@ -2,6 +2,7 @@
 Shim the dbt CLI to include our custom modules.
 """
 
+import functools
 import importlib
 import os
 import pathlib
@@ -30,18 +31,19 @@ def _import_submodules(
     package = importlib.import_module(package_name)
     if not hasattr(package, "__path__"):
         # `package` is a module, don't recurse any further
-        return {}
+        return {}  # pragma: no cover
 
     results = {}
     for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
         full_name = f"{package.__name__}.{name}"
         results[full_name] = importlib.import_module(full_name)
         if recursive and is_pkg:
-            results |= _import_submodules(full_name)
+            results |= _import_submodules(full_name)  # pragma: no cover
 
     return results
 
 
+@functools.cache
 def _get_context_modules_shim() -> dict[str, dict[str, Any]]:
     """
     Append the custom modules into the whitelisted dbt modules.
@@ -51,9 +53,22 @@ def _get_context_modules_shim() -> dict[str, dict[str, Any]]:
     package_root: str = os.environ.get("DBT_PY_PACKAGE_ROOT") or "custom"
     package_name: str = os.environ.get("DBT_PY_PACKAGE_NAME") or package_root
 
-    _import_submodules(package_root)
     modules = _get_context_modules()
-    modules[package_name] = importlib.import_module(package_root)  # type: ignore
+    try:
+        _import_submodules(package_root)
+        modules[package_name] = importlib.import_module(package_root)  # type: ignore
+    except ModuleNotFoundError:
+        # warnings.warn(
+        #     "dbt-py was invoked, but no custom package was found.",
+        #     RuntimeWarning,
+        # )
+
+        #  not a fan of the `warnings.warn` output, so just printing directly
+        yellow = "\033[1;33m"
+        reset = "\033[0m"
+        print(
+            f"{yellow}Warning: dbt-py was invoked, but no custom package was found.{reset}"
+        )
 
     return modules
 

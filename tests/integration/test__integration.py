@@ -14,6 +14,7 @@ import dbt.cli.main
 import pytest
 
 import dbt_py
+from dbt_py.main import _get_context_modules_shim
 
 pytestmark = pytest.mark.integration
 
@@ -38,7 +39,18 @@ EXAMPLE_COMPILED = textwrap.dedent(
 )
 
 
-@pytest.fixture
+@pytest.fixture(scope="function", autouse=True)
+def clear_cache():
+    """
+    Clear the various caches.
+    """
+
+    # Need to invalidate the cache to reload the modules with different
+    # environment variables
+    _get_context_modules_shim.cache_clear()
+
+
+@pytest.fixture(scope="function")
 def mock_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     Mock the environment variables used by dbt_py.
@@ -67,9 +79,31 @@ def teardown() -> Generator[None, Any, None]:
             shutil.rmtree(target)
 
 
+def test__missing_custom_packages_are_handled_gracefully(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    Missing custom packages are handled gracefully.
+    """
+
+    _get_context_modules_shim.cache_clear()
+    monkeypatch.setenv("DBT_PY_PACKAGE_ROOT", "")
+    monkeypatch.setenv("DBT_PY_PACKAGE_NAME", "")
+
+    with unittest.mock.patch("sys.argv", ["", "debug", *ARGS]):
+        with pytest.raises(SystemExit):
+            dbt_py.main()
+
+    captured = capsys.readouterr()
+    msg = "dbt-py was invoked, but no custom package was found"
+
+    assert msg in captured.out
+
+
 def test__dbt_can_be_successfully_invoked(mock_env) -> None:
     """
-    Test that dbt can be successfully invoked.
+    dbt can be successfully invoked.
     """
     with unittest.mock.patch("sys.argv", ["", "compile", *ARGS]):
         with pytest.raises(SystemExit) as exit_info:
@@ -97,7 +131,7 @@ def test__errors_return_the_correct_exit_code(
     expected_exit_code: int,
 ) -> None:
     """
-    Test that the correct exit code is returned, following the dbt docs:
+    The correct exit code is returned, following the dbt docs:
 
     - https://docs.getdbt.com/reference/programmatic-invocations#dbtrunnerresult
     """
