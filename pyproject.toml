@@ -32,6 +32,10 @@ test = [
 packages = ["dbt_py"]
 
 
+[tool.uv]
+required-version = ">=0.7,<1.0"
+default-groups = "all"
+
 [[tool.uv.index]]
 name = "testpypi"
 url = "https://test.pypi.org/simple/"
