@@ -8,6 +8,7 @@ version = "0.0.5"
 description = "Python wrapper for dbt-core to extend dbt with custom Python."
 readme = "README.md"
 authors = [{name = "billwallis"}]
+license = { file = "LICENSE" }
 requires-python = ">=3.11"
 dependencies = [
     "dbt-core>=1.5.0",
@@ -31,6 +32,10 @@ test = [
 [tool.setuptools]
 packages = ["dbt_py"]
 
+
+[tool.uv]
+required-version = ">=0.7,<1.0"
+default-groups = "all"
 
 [[tool.uv.index]]
 name = "testpypi"

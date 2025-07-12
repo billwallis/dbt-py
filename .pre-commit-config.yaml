@@ -30,19 +30,14 @@ repos:
         name: Check TOML files are valid and parseable
       - id: check-ast
         name: Validate Python
+      - id: detect-private-key
+        name: Check for the existence of private keys
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.7.19 # reminder: keep aligned with the GitHub actions
+    rev: 0.7.19
     hooks:
       - id: uv-lock
         name: Check that the lock file is up-to-date
-
-  # Formatting
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v4.0.0-alpha.8
-    hooks:
-      - id: prettier
-        name: Make code pretty
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.2
@@ -52,6 +47,14 @@ repos:
         args: ["--fix"]
       - id: ruff-format
         name: Format Python code
+
+  - repo: https://github.com/billwallis/bills-hooks
+    rev: v0.0.5
+    hooks:
+      - id: pre-commit-validate
+        name: Validate pre-commit config
+      - id: tidy-gitkeep
+        name: Remove redundant .gitkeep files
 
   # Testing and coverage
   - repo: local
