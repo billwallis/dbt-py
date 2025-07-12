@@ -17,7 +17,7 @@ from dbt.context.base import get_context_modules as _get_context_modules
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 
 
-def import_submodules(
+def _import_submodules(
     package_name: str,
     recursive: bool = True,
 ) -> dict[str, ModuleType]:
@@ -26,6 +26,7 @@ def import_submodules(
 
     - https://stackoverflow.com/a/25562415/10730311
     """
+
     package = importlib.import_module(package_name)
     if not hasattr(package, "__path__"):
         # `package` is a module, don't recurse any further
@@ -36,20 +37,21 @@ def import_submodules(
         full_name = f"{package.__name__}.{name}"
         results[full_name] = importlib.import_module(full_name)
         if recursive and is_pkg:
-            results |= import_submodules(full_name)
+            results |= _import_submodules(full_name)
 
     return results
 
 
-def new_get_context_modules() -> dict[str, dict[str, Any]]:
+def _get_context_modules_shim() -> dict[str, dict[str, Any]]:
     """
     Append the custom modules into the whitelisted dbt modules.
     """
+
     # Python-style ref, e.g. `package.module.submodule`
     package_root: str = os.environ.get("DBT_PY_PACKAGE_ROOT") or "custom"
     package_name: str = os.environ.get("DBT_PY_PACKAGE_NAME") or package_root
 
-    import_submodules(package_root)
+    _import_submodules(package_root)
     modules = _get_context_modules()
     modules[package_name] = importlib.import_module(package_root)  # type: ignore
 
@@ -62,11 +64,12 @@ def main() -> None:
 
     - https://docs.getdbt.com/reference/programmatic-invocations
     """
-    dbt.context.base.get_context_modules = new_get_context_modules
+
+    dbt.context.base.get_context_modules = _get_context_modules_shim
     result = dbt.cli.main.dbtRunner().invoke(sys.argv[1:])
+
     if result.success:
-        sys.exit(0)
-    elif result.exception is None:
-        sys.exit(1)
-    else:
-        sys.exit(2)
+        raise SystemExit(0)
+    if result.exception is None:
+        raise SystemExit(1)
+    raise SystemExit(2)
