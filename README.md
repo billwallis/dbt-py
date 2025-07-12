@@ -9,6 +9,7 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/billwallis/dbt-py/main.svg)](https://results.pre-commit.ci/latest/github/billwallis/dbt-py/main)
 [![GitHub last commit](https://img.shields.io/github/last-commit/billwallis/dbt-py)](https://shields.io/badges/git-hub-last-commit)
+[![PyPI downloads](https://img.shields.io/pypi/dm/dbt-py-wrap)](https://shields.io/badges/py-pi-downloads)
 
 </div>
 
