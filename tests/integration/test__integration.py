@@ -55,6 +55,7 @@ def mock_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     Mock the environment variables used by dbt_py.
     """
+
     monkeypatch.setenv(
         "DBT_PY_PACKAGE_ROOT",
         "tests.integration.jaffle-shop.dbt_py_test",
@@ -70,7 +71,9 @@ def teardown() -> Generator[None, Any, None]:
     """
     Remove the dbt target directory if it exists.
     """
+
     yield
+
     # TODO: I think this should be dynamic
     target = DBT_PROJECT_DIR / "target"
     if target.exists():
@@ -105,6 +108,7 @@ def test__dbt_can_be_successfully_invoked(mock_env) -> None:
     """
     dbt can be successfully invoked.
     """
+
     with unittest.mock.patch("sys.argv", ["", "compile", *ARGS]):
         with pytest.raises(SystemExit) as exit_info:
             dbt_py.main()
