@@ -3,6 +3,9 @@ ci:
   autoupdate_schedule: quarterly
   skip: ["identity", "uv-lock", "pytest", "coverage-badge"]
 
+default_install_hook_types: ["pre-commit", "pre-push"]
+default_stages: ["pre-commit"]
+
 repos:
   - repo: meta
     hooks:
@@ -61,13 +64,15 @@ repos:
     hooks:
       - id: pytest
         name: Run unit tests
-        entry: pytest tests --quiet
+        entry: pytest tests --quiet --disable-warnings
         language: system
         pass_filenames: false
         always_run: true
+        stages: ["pre-push"]
       - id: coverage-badge
         name: Generate coverage badge
         entry: coverage-badge -o coverage.svg -f
         language: system
         pass_filenames: false
         always_run: true
+        stages: ["pre-push"]
