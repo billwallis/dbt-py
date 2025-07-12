@@ -36,13 +36,13 @@ The existing Python modules are available in the dbt Jinja context under the `mo
 
 ## Installation ⬇️
 
-While in preview, this package is only available from GitHub:
+Grab a copy from PyPI like usual:
 
 ```
-pip install git+https://github.com/billwallis/dbt-py@v0.0.4
+pip install dbt-py-wrap
 ```
 
-This will be made available on PyPI once it's ready for general use.
+Note the `-wrap` suffix, which is used to avoid name clashes with [the `DbtPy` PyPI package](https://pypi.org/project/DbtPy/).
 
 ## Usage 📖
 
