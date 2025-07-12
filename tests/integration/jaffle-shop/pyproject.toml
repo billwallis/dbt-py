@@ -1,0 +1,9 @@
+# This is intentionally not a complete pyproject.toml file
+
+[[tool.dbt-py.packages]]
+name = "some_package"
+path = "tests.integration.jaffle-shop.some_package"
+
+[[tool.dbt-py.packages]]
+name = "another_package"
+path = "tests.integration.jaffle-shop.some_other_package"

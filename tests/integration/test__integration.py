@@ -90,7 +90,6 @@ def test__missing_custom_packages_are_handled_gracefully(
     Missing custom packages are handled gracefully.
     """
 
-    _get_context_modules_shim.cache_clear()
     monkeypatch.setenv("DBT_PY_PACKAGE_ROOT", "")
     monkeypatch.setenv("DBT_PY_PACKAGE_NAME", "")
 
@@ -156,3 +155,25 @@ def test__errors_return_the_correct_exit_code(
             dbt_py.main()
 
     assert exit_info.value.code == expected_exit_code
+
+
+def test__dbt_can_use_pyproject_config(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    dbt can be successfully invoked using the pyproject.toml config.
+    """
+
+    monkeypatch.setenv("DBT_PY_PACKAGE_ROOT", "")
+    monkeypatch.setenv("DBT_PY_PACKAGE_NAME", "")
+
+    with unittest.mock.patch("sys.argv", ["", "debug", *ARGS]):
+        with pytest.raises(SystemExit) as exit_info:
+            dbt_py.main("tests/integration/jaffle-shop")
+
+    captured = capsys.readouterr()
+    msg = "dbt-py was invoked, but no custom package was found"
+
+    assert exit_info.value.code == 0
+    assert msg not in captured.out

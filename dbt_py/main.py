@@ -4,7 +4,7 @@ Shim the dbt CLI to include our custom modules.
 
 import functools
 import importlib
-import os
+import json
 import pathlib
 import pkgutil
 import sys
@@ -15,7 +15,11 @@ import dbt.cli.main
 import dbt.context.base
 from dbt.context.base import get_context_modules as _get_context_modules
 
+import dbt_py.config
+
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent
+
+JSON = str
 
 
 def _import_submodules(
@@ -44,19 +48,22 @@ def _import_submodules(
 
 
 @functools.cache
-def _get_context_modules_shim() -> dict[str, dict[str, Any]]:
+def _get_context_modules_shim(
+    packages: list[JSON],
+) -> dict[str, dict[str, Any]]:
     """
     Append the custom modules into the whitelisted dbt modules.
     """
 
-    # Python-style ref, e.g. `package.module.submodule`
-    package_root: str = os.environ.get("DBT_PY_PACKAGE_ROOT") or "custom"
-    package_name: str = os.environ.get("DBT_PY_PACKAGE_NAME") or package_root
-
     modules = _get_context_modules()
     try:
-        _import_submodules(package_root)
-        modules[package_name] = importlib.import_module(package_root)  # type: ignore
+        # for hashability, the packages are stored as JSON strings
+        for package in packages:
+            pkg = json.loads(package)
+            name = pkg["name"]
+            path = pkg.get("path", name)
+            _import_submodules(path)
+            modules[name] = importlib.import_module(path)  # type: ignore
     except ModuleNotFoundError:
         # warnings.warn(
         #     "dbt-py was invoked, but no custom package was found.",
@@ -64,8 +71,7 @@ def _get_context_modules_shim() -> dict[str, dict[str, Any]]:
         # )
 
         #  not a fan of the `warnings.warn` output, so just printing directly
-        yellow = "\033[1;33m"
-        reset = "\033[0m"
+        yellow, reset = "\033[1;33m", "\033[0m"
         print(
             f"{yellow}Warning: dbt-py was invoked, but no custom package was found.{reset}"
         )
@@ -73,14 +79,20 @@ def _get_context_modules_shim() -> dict[str, dict[str, Any]]:
     return modules
 
 
-def main() -> None:
+def main(config_root: str = ".") -> None:
     """
     Shim the dbt CLI to include our custom modules.
 
     - https://docs.getdbt.com/reference/programmatic-invocations
     """
 
-    dbt.context.base.get_context_modules = _get_context_modules_shim
+    conf = dbt_py.config.load_config(pathlib.Path(config_root))
+    shim = functools.partial(
+        _get_context_modules_shim,
+        packages=conf.hashable_packages,
+    )
+
+    dbt.context.base.get_context_modules = shim
     result = dbt.cli.main.dbtRunner().invoke(sys.argv[1:])
 
     if result.success:
