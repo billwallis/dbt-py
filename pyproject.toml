@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dbt-py-wrap"  # Not `dbt-py` to avoid confusion with the DbtPy package (PyPI requirement)
-version = "0.0.5"
+version = "0.1.0"
 description = "Python wrapper for dbt-core to extend dbt with custom Python."
 readme = "README.md"
 authors = [{name = "billwallis"}]
