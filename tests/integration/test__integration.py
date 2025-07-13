@@ -14,6 +14,7 @@ import dbt.cli.main
 import pytest
 
 import dbt_py
+from dbt_py.main import _get_context_modules_shim
 
 pytestmark = pytest.mark.integration
 
@@ -38,11 +39,23 @@ EXAMPLE_COMPILED = textwrap.dedent(
 )
 
 
-@pytest.fixture
+@pytest.fixture(scope="function", autouse=True)
+def clear_cache():
+    """
+    Clear the various caches.
+    """
+
+    # Need to invalidate the cache to reload the modules with different
+    # environment variables
+    _get_context_modules_shim.cache_clear()
+
+
+@pytest.fixture(scope="function")
 def mock_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     Mock the environment variables used by dbt_py.
     """
+
     monkeypatch.setenv(
         "DBT_PY_PACKAGE_ROOT",
         "tests.integration.jaffle-shop.dbt_py_test",
@@ -58,7 +71,9 @@ def teardown() -> Generator[None, Any, None]:
     """
     Remove the dbt target directory if it exists.
     """
+
     yield
+
     # TODO: I think this should be dynamic
     target = DBT_PROJECT_DIR / "target"
     if target.exists():
@@ -67,15 +82,47 @@ def teardown() -> Generator[None, Any, None]:
             shutil.rmtree(target)
 
 
-def test__dbt_can_be_successfully_invoked(mock_env) -> None:
+def test__missing_custom_packages_are_handled_gracefully(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """
-    Test that dbt can be successfully invoked.
+    Missing custom packages are handled gracefully.
     """
+
+    monkeypatch.setenv("DBT_PY_PACKAGE_ROOT", "")
+    monkeypatch.setenv("DBT_PY_PACKAGE_NAME", "")
+
+    with unittest.mock.patch("sys.argv", ["", "debug", *ARGS]):
+        with pytest.raises(SystemExit):
+            dbt_py.main()
+
+    captured = capsys.readouterr()
+    msg = "DbtPyWarning: failed to import package 'custom': No module named 'custom'"
+
+    assert msg in captured.out
+
+
+def test__dbt_can_be_successfully_invoked(
+    mock_env,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """
+    dbt can be successfully invoked.
+    """
+
     with unittest.mock.patch("sys.argv", ["", "compile", *ARGS]):
         with pytest.raises(SystemExit) as exit_info:
             dbt_py.main()
 
+    captured = capsys.readouterr()
+    deprecation_msg = (
+        "DbtPyWarning: Using environment variables for package configuration is "
+        "deprecated. Use the `pyproject.toml` file instead."
+    )
+
     assert exit_info.value.code == 0
+    assert deprecation_msg in captured.out
     assert (
         EXAMPLE_FILE.read_text(encoding="utf-8").strip()
         == EXAMPLE_COMPILED.strip()
@@ -97,7 +144,7 @@ def test__errors_return_the_correct_exit_code(
     expected_exit_code: int,
 ) -> None:
     """
-    Test that the correct exit code is returned, following the dbt docs:
+    The correct exit code is returned, following the dbt docs:
 
     - https://docs.getdbt.com/reference/programmatic-invocations#dbtrunnerresult
     """
@@ -118,3 +165,25 @@ def test__errors_return_the_correct_exit_code(
             dbt_py.main()
 
     assert exit_info.value.code == expected_exit_code
+
+
+def test__dbt_can_use_pyproject_config(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    dbt can be successfully invoked using the pyproject.toml config.
+    """
+
+    monkeypatch.setenv("DBT_PY_PACKAGE_ROOT", "")
+    monkeypatch.setenv("DBT_PY_PACKAGE_NAME", "")
+
+    with unittest.mock.patch("sys.argv", ["", "debug", *ARGS]):
+        with pytest.raises(SystemExit) as exit_info:
+            dbt_py.main("tests/integration/jaffle-shop")
+
+    captured = capsys.readouterr()
+    msg = "DbtPyWarning: failed to import package"
+
+    assert exit_info.value.code == 0
+    assert msg not in captured.out
