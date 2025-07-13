@@ -16,22 +16,11 @@ import dbt.context.base
 from dbt.context.base import get_context_modules as _get_context_modules
 
 import dbt_py.config
+import dbt_py.exceptions
 
-YELLOW = "\033[1;33m"
-RESET = "\033[0m"
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 
 JSON = str
-
-
-class DbtPyWarning(Warning):
-    def __str__(self):
-        return f"{DbtPyWarning.__name__}: {super().__str__()}"
-
-
-# not a fan of the `warnings.warn` output, so just printing directly
-def warn(message: str, category: type[Warning]) -> None:
-    print(f"{YELLOW}{category(message)}{RESET}")
 
 
 def _import_submodules(
@@ -81,8 +70,11 @@ def _get_context_modules_shim(
             # modules are being imported. Otherwise, we're unable to import
             # a module that is expected to be present, which is a problem.
 
-            # warnings.warn(str(err), DbtPyWarning)
-            warn(f"failed to import package '{path}': {err}", DbtPyWarning)
+            # warnings.warn(str(err), dbt_py.exceptions.DbtPyWarning)
+            dbt_py.exceptions.warn(
+                f"failed to import package '{path}': {err}",
+                dbt_py.exceptions.DbtPyWarning,
+            )
 
     return modules
 

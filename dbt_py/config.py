@@ -10,8 +10,11 @@ import os
 import pathlib
 import tomllib
 
+import dbt_py.exceptions
+
 CONFIG_FILE = "pyproject.toml"
 TOOL_SECTION = ("tool", "dbt-py")
+DEFAULT_PACKAGE_NAME = "custom"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -46,14 +49,23 @@ def _default_packages() -> dict[str, list[dict]]:
     """
 
     # Python-style ref, e.g. `package.module.submodule`
-    package_root = os.environ.get("DBT_PY_PACKAGE_ROOT") or "custom"
-    package_name = os.environ.get("DBT_PY_PACKAGE_NAME") or package_root
+    package_root = os.environ.get("DBT_PY_PACKAGE_ROOT")
+    package_name = os.environ.get("DBT_PY_PACKAGE_NAME")
+    if package_root or package_name:
+        dbt_py.exceptions.warn(
+            "Using environment variables for package configuration is deprecated. "
+            "Use the `pyproject.toml` file instead.",
+            dbt_py.exceptions.DbtPyWarning,
+        )
+
+    root = package_root or DEFAULT_PACKAGE_NAME
+    name = package_name or package_root
 
     return {
         "packages": [
             {
-                "name": package_name,
-                "path": package_root,
+                "name": name,
+                "path": root,
             }
         ]
     }

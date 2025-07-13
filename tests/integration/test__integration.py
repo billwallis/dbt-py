@@ -103,7 +103,10 @@ def test__missing_custom_packages_are_handled_gracefully(
     assert msg in captured.out
 
 
-def test__dbt_can_be_successfully_invoked(mock_env) -> None:
+def test__dbt_can_be_successfully_invoked(
+    mock_env,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     """
     dbt can be successfully invoked.
     """
@@ -112,7 +115,14 @@ def test__dbt_can_be_successfully_invoked(mock_env) -> None:
         with pytest.raises(SystemExit) as exit_info:
             dbt_py.main()
 
+    captured = capsys.readouterr()
+    deprecation_msg = (
+        "DbtPyWarning: Using environment variables for package configuration is "
+        "deprecated. Use the `pyproject.toml` file instead."
+    )
+
     assert exit_info.value.code == 0
+    assert deprecation_msg in captured.out
     assert (
         EXAMPLE_FILE.read_text(encoding="utf-8").strip()
         == EXAMPLE_COMPILED.strip()
