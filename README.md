@@ -47,23 +47,70 @@ Note the `-wrap` suffix, which is used to avoid name clashes with [the `DbtPy` P
 
 ## Usage 📖
 
-This package adds a new executable, `dbt-py`, which injects your custom Python into dbt and then runs dbt. Either a custom module or a custom package can be injected. A custom module is the simplest to get started with.
-
-The default module/package name is `custom` which would make custom Python available in the dbt Jinja context under the `modules.custom` object. This can be configured (see the [Configuration](#configuration-) section below).
-
 > [!IMPORTANT]
 >
-> If you create the Python files in your dbt repo, you **must** install your own project as a package for your files to be found and imported by dbt.
+> If you create the Python files in your dbt repo, you **must**:
 >
-> This is typically achieved with `pip install -e .`; please see the pip docs for more details:
->
-> - [https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs](https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs)
->
-> If you use a package manager such as [Poetry](https://python-poetry.org/) or [uv](https://docs.astral.sh/uv/), they should automatically install your project provided you configure the project metadata correctly.
+> - make your custom modules/packages discoverable by Python
+> - install your own project
+
+> [!TIP]
 >
 > See the following repo for a minimal example that uses `requirements.txt` and [setuptools](https://setuptools.pypa.io/en/latest/):
 >
 > - [https://github.com/billwallis/dbt-py-test](https://github.com/billwallis/dbt-py-test)
+
+This package adds a new executable, `dbt-py`, which injects your custom Python into dbt and then runs dbt. Custom modules, custom packages, standard library packages, and installed packages can be injected.
+
+### Configuration (>=0.1.0)
+
+From version `0.1.0` onwards, the packages to inject are configured via the `pyproject.toml` file in the `tool.dbt-py` section. Use the `packages` attribute to list the `name` (required) and `path` (optional) of the modules to import; for example:
+
+```toml
+[tool.dbt-py]
+packages = [
+    {name = "math"},  # stdlib package
+    {name = "dbt_py"},  # installed package
+    {name = "custom_module"},  # custom module
+    {name = "custom_package"},  # custom package
+    {name = "another_package", path = "another_custom_package"},  # custom package with path
+]
+```
+
+The custom modules/packages can only be imported by Python/dbt if they are discoverable by Python. For example, if you're using [setuptools](https://setuptools.pypa.io/en/latest/index.html) and configuring it with the `pyproject.toml` file, this is typically [achieved by specifying the `py-modules` and `packages` attributes](https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html):
+
+```toml
+[tool.setuptools]
+py-modules = [
+    "custom_module",
+]
+packages = [
+    "custom_package",
+    "another_custom_package",
+]
+```
+
+You also need to install your project so that the custom modules/packages are available in your Python environment; for example:
+
+```
+pip install -e .
+```
+
+If you don't configure `dbt-py` in the `pyproject.toml` file, the configuration will default to the legacy behaviour (below).
+
+### Configuration (<0.1.0)
+
+> [!WARNING]
+>
+> This configuration is deprecated and will be removed in a future version of `dbt-py`. Use the `pyproject.toml` configuration instead.
+
+Before version `0.1.0`, `dbt-py` only supported a single custom module/package. This was configured via the following environment variables:
+
+- `DBT_PY_PACKAGE_ROOT`: The Python-style ref to the custom module/package, e.g. `package.module.submodule`
+- `DBT_PY_PACKAGE_NAME`: The name to give the custom module/package in the dbt Jinja context, e.g. `custom_py`. Defaults to the value of `DBT_PY_PACKAGE_ROOT`
+
+If not specified, the `DBT_PY_PACKAGE_ROOT` defaults to `custom`.
+
 
 ### Custom Module 🐍
 
@@ -72,6 +119,26 @@ Create a module called `custom.py` in the root of your dbt project. This module 
 ```python
 def salutation(name: str) -> str:
     return f"Hello, {name}!"
+```
+
+Add this module to the `pyproject.toml` file for your build system and for `dbt-py`:
+
+```toml
+[tool.setuptools]
+py-modules = [
+    "custom",
+]
+
+[tool.dbt-py]
+packages = [
+    {name = "custom"},
+]
+```
+
+Install your project:
+
+```
+pip install -e .
 ```
 
 Reference this module and function in the dbt Jinja context of a dbt model:
@@ -107,6 +174,26 @@ custom/
     greetings.py
 ```
 
+Add this package to the `pyproject.toml` file for your build system and for `dbt-py`:
+
+```toml
+[tool.setuptools]
+packages = [
+    "custom",
+]
+
+[tool.dbt-py]
+packages = [
+    {name = "custom"},
+]
+```
+
+Install your project:
+
+```
+pip install -e .
+```
+
 If the `greetings.py` submodule contains the same `salutation` function as above, then it can be referenced in the dbt Jinja context as follows:
 
 ```jinja
@@ -119,32 +206,14 @@ Alternatively, you can expose the `salutation` function via the `__init__.py` fi
 {{ modules.custom.salutation("World") }}
 ```
 
-### Configuration 🛠️
-
-The default module/package and Jinja context name is `custom` but both can be configured with the following environment variables:
-
-- `DBT_PY_PACKAGE_ROOT`: The Python-style ref to the custom module/package, e.g. `package.module.submodule`
-- `DBT_PY_PACKAGE_NAME`: The name to give the custom module/package in the dbt Jinja context, e.g. `custom_py`. Defaults to the value of `DBT_PY_PACKAGE_ROOT`
-
-In particular, you can use the `DBT_PY_PACKAGE_ROOT` environment variable to reference a custom module/package that is not at the root of your dbt project.
-
-> [!WARNING]
->
-> If you set the `DBT_PY_PACKAGE_ROOT` environment variable to a name that already exists, this package will use the existing module/package rather than your custom one. Make sure that your custom module/package name does not clash with any existing modules/packages.
->
-> This is likely to change in a future release, but for now you may choose to exploit this behaviour to use an existing module/package in your dbt Jinja context. For example, you could set `DBT_PY_PACKAGE_ROOT` to `math` and then reference the `math` standard library in your dbt Jinja context:
->
-> ```jinja
-> {{ modules.math.pi }}
-> ```
-
 ## Future Work 🚧
 
-This is still in preview, and there are a few things to be added before it's ready for general use:
+This is still in preview, and the API is likely to change considerably over time.
 
-- Support for importing any number of packages (currently only one package is supported)
-- Configuration via config files and CLI arguments (currently only environment variables are supported)
-- More robust testing
+For example:
+
+- the environment variable configuration will be deprecated in favour of the `pyproject.toml` configuration
+- the `pyproject.toml` configuration may piggyback off of the build system (e.g. setuptools) configuration, rather than being a separate section
 
 ## Contributing 🤝
 
