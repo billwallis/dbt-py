@@ -17,13 +17,21 @@ from dbt.context.base import get_context_modules as _get_context_modules
 
 import dbt_py.config
 
+YELLOW = "\033[1;33m"
+RESET = "\033[0m"
 PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 
 JSON = str
 
 
 class DbtPyWarning(Warning):
-    pass
+    def __str__(self):
+        return f"{DbtPyWarning.__name__}: {super().__str__()}"
+
+
+# not a fan of the `warnings.warn` output, so just printing directly
+def warn(message: str, category: type[Warning]) -> None:
+    print(f"{YELLOW}{category(message)}{RESET}")
 
 
 def _import_submodules(
@@ -74,10 +82,7 @@ def _get_context_modules_shim(
         # a module that is expected to be present, which is a problem.
 
         # warnings.warn(str(err), DbtPyWarning)
-
-        #  not a fan of the `warnings.warn` output, so just printing directly
-        yellow, reset = "\033[1;33m", "\033[0m"
-        print(f"{yellow}DbtPyWarning: {err}{reset}")
+        warn(str(err), DbtPyWarning)
 
     return modules
 
