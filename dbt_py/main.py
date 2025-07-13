@@ -68,21 +68,21 @@ def _get_context_modules_shim(
     """
 
     modules = _get_context_modules()
-    try:
-        # for hashability, the packages are stored as JSON strings
-        for package in packages:
-            pkg = json.loads(package)
-            name = pkg["name"]
-            path = pkg.get("path", name)
+    # for hashability, the packages are stored as JSON strings
+    for package in packages:
+        pkg = json.loads(package)
+        name = pkg["name"]
+        path = pkg.get("path", name)
+        try:
             _import_submodules(path)
             modules[name] = importlib.import_module(path)  # type: ignore
-    except ModuleNotFoundError as err:
-        # This should probably only be masked when the default custom
-        # modules are being imported. Otherwise, we're unable to import
-        # a module that is expected to be present, which is a problem.
+        except ModuleNotFoundError as err:
+            # This should probably only be masked when the default custom
+            # modules are being imported. Otherwise, we're unable to import
+            # a module that is expected to be present, which is a problem.
 
-        # warnings.warn(str(err), DbtPyWarning)
-        warn(str(err), DbtPyWarning)
+            # warnings.warn(str(err), DbtPyWarning)
+            warn(f"failed to import package '{path}': {err}", DbtPyWarning)
 
     return modules
 

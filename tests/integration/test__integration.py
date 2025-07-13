@@ -98,7 +98,7 @@ def test__missing_custom_packages_are_handled_gracefully(
             dbt_py.main()
 
     captured = capsys.readouterr()
-    msg = "DbtPyWarning: No module named 'custom'"
+    msg = "DbtPyWarning: failed to import package 'custom': No module named 'custom'"
 
     assert msg in captured.out
 
@@ -173,7 +173,7 @@ def test__dbt_can_use_pyproject_config(
             dbt_py.main("tests/integration/jaffle-shop")
 
     captured = capsys.readouterr()
-    msg = "DbtPyWarning: No module named "
+    msg = "DbtPyWarning: failed to import package"
 
     assert exit_info.value.code == 0
     assert msg not in captured.out
