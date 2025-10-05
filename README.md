@@ -1,4 +1,4 @@
-<div align="center">
+<span align="center">
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![dbt](https://img.shields.io/badge/dbt-1.5+-blue.svg)](https://github.com/dbt-labs/dbt-core/)
@@ -11,7 +11,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/billwallis/dbt-py)](https://shields.io/badges/git-hub-last-commit)
 [![PyPI downloads](https://img.shields.io/pypi/dm/dbt-py-wrap)](https://shields.io/badges/py-pi-downloads)
 
-</div>
+</span>
 
 ---
 
