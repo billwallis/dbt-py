@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://json.schemastore.org/pre-commit-config.json
 ---
 ci:
   autoupdate_schedule: quarterly
@@ -12,7 +13,7 @@ repos:
       - id: identity
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: no-commit-to-branch
         name: Don't allow commits to the main branch
@@ -36,43 +37,46 @@ repos:
       - id: detect-private-key
         name: Check for the existence of private keys
 
+  - repo: https://github.com/pre-commit-ci/pre-commit-ci-config
+    rev: v1.6.1
+    hooks:
+      - id: check-pre-commit-ci-config
+        name: Validate pre-commit CI config
+
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.7.19
+    rev: 0.8.22
     hooks:
       - id: uv-lock
         name: Check that the lock file is up-to-date
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.2
+    rev: v0.13.3
     hooks:
-      - id: ruff
+      - id: ruff-check
         name: Lint Python code
         args: ["--fix"]
       - id: ruff-format
         name: Format Python code
 
   - repo: https://github.com/billwallis/bills-hooks
-    rev: v0.0.5
+    rev: v0.0.6
     hooks:
-      - id: pre-commit-validate
-        name: Validate pre-commit config
       - id: tidy-gitkeep
         name: Remove redundant .gitkeep files
 
-  # Testing and coverage
   - repo: local
     hooks:
       - id: pytest
         name: Run unit tests
-        entry: pytest tests --quiet --disable-warnings
+        entry: pytest tests --quiet
+        stages: ["pre-push"]
         language: system
         pass_filenames: false
         always_run: true
-        stages: ["pre-push"]
       - id: coverage-badge
         name: Generate coverage badge
         entry: coverage-badge -o coverage.svg -f
+        stages: ["pre-push"]
         language: system
         pass_filenames: false
         always_run: true
-        stages: ["pre-push"]
