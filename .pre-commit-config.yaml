@@ -68,15 +68,15 @@ repos:
     hooks:
       - id: pytest
         name: Run unit tests
-        entry: pytest tests --quiet
+        entry: uv run pytest tests --quiet
         stages: ["pre-push"]
-        language: system
+        language: unsupported
         pass_filenames: false
         always_run: true
       - id: coverage-badge
         name: Generate coverage badge
-        entry: coverage-badge -o coverage.svg -f
+        entry: uv run coverage-badge -o coverage.svg -f
         stages: ["pre-push"]
-        language: system
+        language: unsupported
         pass_filenames: false
         always_run: true
