@@ -13,7 +13,7 @@ authors = [{name = "billwallis"}]
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
 dependencies = [
-    "dbt-core>=1.5.0",
+    "dbt-core>=1.10.0",
 ]
 
 [project.scripts]
@@ -25,7 +25,7 @@ dev = [
     "pre-commit>=4.5.1",
 ]
 test = [
-    "dbt-duckdb>=1.5.0",
+    "dbt-duckdb>=1.10.0",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
 ]
