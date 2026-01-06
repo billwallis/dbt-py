@@ -21,7 +21,9 @@ jobs:
 
       - name: 📦 Set up uv
         uses: astral-sh/setup-uv@v6
-        with: { enable-cache: true }
+        with:
+          enable-cache: true
+          python-version: 3.13  # PyO3's maximum supported version is currently 3.13 (https://github.com/billwallis/dbt-py/actions/runs/20742618569/job/59552449428?pr=51)
 
       - name: 🔨 Install dependencies
         run: uv sync --no-default-groups --group test
