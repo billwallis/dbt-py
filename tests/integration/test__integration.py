@@ -155,7 +155,7 @@ def test__errors_return_the_correct_exit_code(
         exception: BaseException | None
 
     class MockRunner:
-        def invoke(self, args):
+        def invoke(self, args: Any) -> MockRunnerResult:
             return MockRunnerResult(success=success, exception=exception)
 
     monkeypatch.setattr(dbt.cli.main, "dbtRunner", MockRunner)

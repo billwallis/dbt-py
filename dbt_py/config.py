@@ -34,7 +34,7 @@ class Config:
         return cls(**settings)
 
     @property
-    def hashable_packages(self):
+    def hashable_packages(self) -> frozenset[str]:
         """
         Return a frozenset of JSON strings representing the packages.
 
