@@ -3,7 +3,7 @@ RESET = "\033[0m"
 
 
 class DbtPyWarning(Warning):
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{DbtPyWarning.__name__}: {super().__str__()}"
 
 

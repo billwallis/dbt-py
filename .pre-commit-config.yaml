@@ -16,67 +16,79 @@ repos:
     rev: v6.0.0
     hooks:
       - id: no-commit-to-branch
-        name: Don't allow commits to the main branch
         args: ["--branch", "main"]
       - id: trailing-whitespace
-        name: Remove trailing whitespace
       - id: end-of-file-fixer
-        name: Ensure files end with a newline character
+        exclude: "coverage.svg"
       - id: mixed-line-ending
-        name: Align mixed line ending
       - id: check-added-large-files
-        name: Check for large files
       - id: check-json
-        name: Check JSON files are valid and parseable
       - id: check-yaml
-        name: Check YAML files are valid and parseable
       - id: check-toml
-        name: Check TOML files are valid and parseable
       - id: check-ast
-        name: Validate Python
       - id: detect-private-key
-        name: Check for the existence of private keys
 
   - repo: https://github.com/pre-commit-ci/pre-commit-ci-config
     rev: v1.6.1
     hooks:
       - id: check-pre-commit-ci-config
-        name: Validate pre-commit CI config
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.11.3
     hooks:
       - id: uv-lock
-        name: Check that the lock file is up-to-date
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.9
     hooks:
       - id: ruff-check
-        name: Lint Python code
         args: ["--fix"]
       - id: ruff-format
-        name: Format Python code
 
   - repo: https://github.com/billwallis/bills-hooks
     rev: v0.0.13
     hooks:
+      - id: banned-python-code
+      - id: check-no-commit-comment
       - id: tidy-gitkeep
-        name: Remove redundant .gitkeep files
+
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.37.1
+    hooks:
+      - id: check-github-workflows
+      - id: check-compose-spec
+
+  - repo: local
+    hooks:
+      - id: check-pyproject-schema
+        name: Validate pyproject.toml schema
+        entry: check-jsonschema
+        args: ["--schemafile", "https://json.schemastore.org/pyproject.json"]
+        files: pyproject.toml
+        pass_filenames: true
+        language: python
+        additional_dependencies: ["check-jsonschema==0.37.1"]
+        # This calls a remote URL, so run on pre-push to avoid slowing down commits
+        stages: ["pre-push"]
 
   - repo: local
     hooks:
       - id: pytest
         name: Run unit tests
-        entry: uv run pytest tests --quiet
+        entry: uv run pytest tests --quiet --cov-report=xml
         stages: ["pre-push"]
         language: unsupported
         pass_filenames: false
         always_run: true
       - id: coverage-badge
         name: Generate coverage badge
-        entry: uv run coverage-badge -o coverage.svg -f
+        entry: >
+          genbadge coverage
+          --input-file 'coverage.xml'
+          --output-file coverage.svg
+          --silent
+        additional_dependencies: ["genbadge[coverage]==1.1.3"]
         stages: ["pre-push"]
-        language: unsupported
+        language: python
         pass_filenames: false
         always_run: true
