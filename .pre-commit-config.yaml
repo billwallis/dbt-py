@@ -2,7 +2,7 @@
 ---
 ci:
   autoupdate_schedule: quarterly
-  skip: ["identity", "uv-lock", "pytest", "coverage-badge"]
+  skip: ["identity", "uv-lock", "pytest", "test-coverage", "coverage-badge"]
 
 default_install_hook_types: ["pre-commit", "pre-push"]
 default_stages: ["pre-commit"]
@@ -34,61 +34,71 @@ repos:
       - id: check-pre-commit-ci-config
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.3
+    rev: 0.11.14
     hooks:
       - id: uv-lock
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.9
+    rev: v0.15.12
     hooks:
       - id: ruff-check
         args: ["--fix"]
       - id: ruff-format
 
   - repo: https://github.com/billwallis/bills-hooks
-    rev: v0.0.13
+    rev: v0.0.15
     hooks:
       - id: banned-python-code
       - id: check-no-commit-comment
       - id: tidy-gitkeep
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.37.1
+    rev: 0.37.2
     hooks:
       - id: check-github-workflows
       - id: check-compose-spec
 
   - repo: local
     hooks:
-      - id: check-pyproject-schema
+      - <<: &check-jsonschema-config
+          entry: check-jsonschema
+          pass_filenames: true
+          language: python
+          additional_dependencies: ["check-jsonschema==0.37.2"]
+          # This calls a remote URL, so run on pre-push to avoid slowing down commits
+          stages: ["pre-push"]
+        id: check-pyproject-schema
         name: Validate pyproject.toml schema
-        entry: check-jsonschema
-        args: ["--schemafile", "https://json.schemastore.org/pyproject.json"]
         files: pyproject.toml
-        pass_filenames: true
-        language: python
-        additional_dependencies: ["check-jsonschema==0.37.1"]
-        # This calls a remote URL, so run on pre-push to avoid slowing down commits
-        stages: ["pre-push"]
+        args: ["--schemafile", "https://json.schemastore.org/pyproject.json"]
+      - <<: *check-jsonschema-config
+        id: check-pre-commit-hooks-schema
+        name: Validate .pre-commit-hooks.yaml schema
+        files: .pre-commit-hooks.yaml
+        args: ["--schemafile", "https://json.schemastore.org/pre-commit-hooks.json"]
 
   - repo: local
     hooks:
-      - id: pytest
+      - <<: &tests-config
+          language: unsupported
+          pass_filenames: false
+          always_run: true
+          stages: ["pre-push"]
+        id: pytest
         name: Run unit tests
-        entry: uv run pytest tests --quiet --cov-report=xml
-        stages: ["pre-push"]
-        language: unsupported
-        pass_filenames: false
-        always_run: true
-      - id: coverage-badge
+        entry: uv run coverage run -m pytest --quiet
+      - <<: *tests-config
+        id: coverage-xml
+        name: Write coverage XML report
+        entry: uv run coverage xml --quiet
+      - <<: *tests-config
+        id: test-coverage
+        name: Tests have 100% run coverage
+        entry: uv run coverage report --no-skip-covered --include 'tests/*' --fail-under 100
+      - <<: *tests-config
+        id: coverage-badge
         name: Generate coverage badge
-        entry: >
-          genbadge coverage
-          --input-file 'coverage.xml'
-          --output-file coverage.svg
-          --silent
+        entry: genbadge coverage --input-file 'coverage.xml' --output-file coverage.svg --silent
+        # https://github.com/smarie/python-genbadge/releases
         additional_dependencies: ["genbadge[coverage]==1.1.3"]
-        stages: ["pre-push"]
         language: python
-        pass_filenames: false
-        always_run: true

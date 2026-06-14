@@ -76,7 +76,7 @@ def teardown() -> Generator[None, Any, None]:
 
     # TODO: I think this should be dynamic
     target = DBT_PROJECT_DIR / "target"
-    if target.exists():
+    if target.exists():  # pragma: no cover
         with contextlib.suppress(PermissionError):
             # TODO: figure out why we're getting these locks
             shutil.rmtree(target)
