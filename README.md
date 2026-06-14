@@ -4,9 +4,8 @@
 [![dbt](https://img.shields.io/badge/dbt-1.5+-blue.svg)](https://github.com/dbt-labs/dbt-core/)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![tests](https://github.com/billwallis/dbt-py/actions/workflows/tests.yaml/badge.svg)](https://github.com/billwallis/dbt-py/actions/workflows/tests.yaml)
-[![coverage](coverage.svg)](https://github.com/dbrgn/coverage-badge)
+[![coverage](https://raw.githubusercontent.com/billwallis/dbt-py/refs/heads/main/coverage.svg)](https://smarie.github.io/python-genbadge/)
 
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/billwallis/dbt-py/main.svg)](https://results.pre-commit.ci/latest/github/billwallis/dbt-py/main)
 [![GitHub last commit](https://img.shields.io/github/last-commit/billwallis/dbt-py)](https://shields.io/badges/git-hub-last-commit)
 [![PyPI downloads](https://img.shields.io/pypi/dm/dbt-py-wrap)](https://shields.io/badges/py-pi-downloads)
@@ -215,13 +214,12 @@ For example:
 - the environment variable configuration will be deprecated in favour of the `pyproject.toml` configuration
 - the `pyproject.toml` configuration may piggyback off of the build system (e.g. setuptools) configuration, rather than being a separate section
 
-## Contributing 🤝
+## Contributing
 
 Raise an issue, or fork the repo and open a pull request.
 
-This project uses [uv](https://github.com/astral-sh/uv/) and [pre-commit](https://pre-commit.com/). After cloning the repo, install the dependencies and enable pre-commit:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and then install the dependencies:
 
-```
-uv sync --all-groups
-pre-commit install --install-hooks
+```shell
+uvx --from poethepoet poe install
 ```
