@@ -34,12 +34,12 @@ repos:
       - id: check-pre-commit-ci-config
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.14
+    rev: 0.11.26
     hooks:
       - id: uv-lock
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.12
+    rev: v0.15.20
     hooks:
       - id: ruff-check
         args: ["--fix"]
@@ -53,7 +53,7 @@ repos:
       - id: tidy-gitkeep
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.37.2
+    rev: 0.37.4
     hooks:
       - id: check-github-workflows
       - id: check-compose-spec
