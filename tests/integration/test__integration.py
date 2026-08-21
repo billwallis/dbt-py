@@ -187,3 +187,26 @@ def test__dbt_can_use_pyproject_config(
 
     assert exit_info.value.code == 0
     assert msg not in captured.out
+
+
+def test__dbt_uses_default_config(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    dbt can be successfully invoked using the default config.
+    """
+
+    monkeypatch.setenv("DBT_PY_PACKAGE_ROOT", "")
+    monkeypatch.setenv("DBT_PY_PACKAGE_NAME", "")
+
+    with unittest.mock.patch("dbt_py.config.CONFIG_FILE", "gone"):
+        with unittest.mock.patch("sys.argv", ["", "debug", *ARGS]):
+            with pytest.raises(SystemExit) as exit_info:
+                dbt_py.main("tests/integration/jaffle-shop")
+
+    captured = capsys.readouterr()
+    msg = "DbtPyWarning: failed to import package 'custom': No module named 'custom'"
+
+    assert exit_info.value.code == 0
+    assert msg in captured.out
