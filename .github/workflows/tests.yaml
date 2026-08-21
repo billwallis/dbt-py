@@ -6,6 +6,10 @@ run-name: Tests 🧪
 on:
   workflow_dispatch:
   pull_request:
+  # Weekly smoke tests just to confirm nothing breaks in the dependencies,
+  # as this isn't used often enough to rely on bug reports only.
+  schedule:
+    - cron: "0 6 * * 0"
 
 jobs:
   tests:
