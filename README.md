@@ -14,6 +14,10 @@
 
 ---
 
+> [!WARNING]
+>
+> This is not yet compatible with dbt v2.
+
 # dbt-π 🧬
 
 Python wrapper for [dbt-core](https://github.com/dbt-labs/dbt-core) to extend dbt with custom Python.
