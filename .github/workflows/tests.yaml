@@ -24,8 +24,8 @@ jobs:
       - name: 🐍 Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
-#          python-version: 3.13  # PyO3's maximum supported version is currently 3.13 (https://github.com/billwallis/dbt-py/actions/runs/20742618569/job/59552449428?pr=51)
-          python-version-file: pyproject.toml
+#          python-version-file: pyproject.toml
+          python-version: 3.13  # PyO3's maximum supported version is currently 3.13 (https://github.com/billwallis/dbt-py/actions/runs/42403678074/job/128496682479?pr=79)
           cache: "pip"
 
       - name: 🔨 Install dependencies
