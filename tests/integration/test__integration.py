@@ -1,7 +1,3 @@
-"""
-Integration tests for the package.
-"""
-
 import contextlib
 import dataclasses
 import shutil

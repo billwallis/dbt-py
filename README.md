@@ -2,7 +2,6 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![dbt](https://img.shields.io/badge/dbt-1.5+-blue.svg)](https://github.com/dbt-labs/dbt-core/)
-[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![tests](https://github.com/billwallis/dbt-py/actions/workflows/tests.yaml/badge.svg)](https://github.com/billwallis/dbt-py/actions/workflows/tests.yaml)
 [![coverage](https://raw.githubusercontent.com/billwallis/dbt-py/refs/heads/main/coverage.svg)](https://smarie.github.io/python-genbadge/)
 
@@ -222,8 +221,9 @@ For example:
 
 Raise an issue, or fork the repo and open a pull request.
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and then install the dependencies:
+Install the dependencies:
 
 ```shell
-uvx --from poethepoet poe install
+pip install --editable . --group dev --group test
+pre-commit install --install-hooks
 ```

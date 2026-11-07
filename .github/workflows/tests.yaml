@@ -19,19 +19,20 @@ jobs:
         os: ["windows-latest", "macos-latest", "ubuntu-latest"]
     steps:
       - name: 🛎️ Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
-      - name: 📦 Set up uv
-        uses: astral-sh/setup-uv@v7
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
-          enable-cache: true
-          python-version: 3.13  # PyO3's maximum supported version is currently 3.13 (https://github.com/billwallis/dbt-py/actions/runs/20742618569/job/59552449428?pr=51)
+#          python-version-file: pyproject.toml
+          python-version: 3.13  # PyO3's maximum supported version is currently 3.13 (https://github.com/billwallis/dbt-py/actions/runs/42403678074/job/128496682479?pr=79)
+          cache: "pip"
 
       - name: 🔨 Install dependencies
-        run: uv sync --no-default-groups --group test
+        run: pip install --editable . --group test
 
       - name: ✅ Run unit tests
-        run: uv run pytest -vvv
+        run: pytest -vvv --color yes
         env:
           # TODO: This is configured in the tests, but not being picked up in CI
           DBT_PY_PACKAGE_ROOT: "tests.integration.jaffle-shop.dbt_py_test"
