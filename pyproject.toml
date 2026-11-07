@@ -5,12 +5,24 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dbt-py-wrap"  # Not `dbt-py` to avoid confusion with the DbtPy package (PyPI requirement)
-version = "0.1.0"
+version = "0.1.1-rc.1"
 description = "Python wrapper for dbt-core to extend dbt with custom Python."
 authors = [{name = "billwallis"}]
+maintainers = [{name = "billwallis"}]
 readme = "README.md"
+urls.Homepage = "https://github.com/billwallis/dbt-py"
+urls.Repository = "https://github.com/billwallis/dbt-py"
+urls.Issues = "https://github.com/billwallis/dbt-py/issues"
+urls.Documentation = "https://github.com/billwallis/dbt-py/blob/main/README.md"
+license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 dependencies = [
     "dbt-core>=1.10.0,<2.0.0",
 ]
@@ -18,29 +30,30 @@ scripts.dbt-py = "dbt_py:main"
 
 [dependency-groups]
 dev = [
-    "poethepoet>=0.46.0",
-    "pre-commit>=4.6.0",
+    "poethepoet>=0.48.0",
+    "pre-commit>=4.6.2",
 ]
 test = [
-    "coverage>=7.13.5",
     "covdefaults>=2.3.0",
+    "coverage>=7.16.0",
     "dbt-duckdb>=1.10.0",
-    "pytest>=9.0.3",
+    "pytest>=9.1.1",
 ]
 
 
-[tool.setuptools]
-packages = ["dbt_py"]
+[tool.pytest.ini_options]
+markers = "integration"
+testpaths = ["tests"]
 
 
-[tool.uv]
-default-groups = "all"
-
-[[tool.uv.index]]
-name = "testpypi"
-url = "https://test.pypi.org/simple/"
-publish-url = "https://test.pypi.org/legacy/"
-explicit = true
+[tool.coverage]
+run.source = ["src", "tests"]
+run.plugins = ["covdefaults"]  # https://youtu.be/70T6OxKwxm0
+report.fail_under = 100
+report.exclude_lines = [
+    "@pytest.mark.skip",
+    "@pytest.mark.xfail",
+]
 
 
 [tool.poe]
@@ -49,17 +62,15 @@ envfile.optional = ".env"
 
 [tool.poe.tasks]
 install.shell = """
-    uv sync --refresh
-    uv run pre-commit install --install-hooks
-"""
-upgrade.shell = """
-    uv sync --refresh --upgrade
-    uv run pre-commit autoupdate
+    pip install --editable . --group dev --group test
+    pre-commit install --install-hooks
 """
 test.shell = """
-    uv run coverage run -m pytest -vvv
-    uv run coverage report --no-skip-covered
-    uv run coverage xml --quiet
+    coverage erase
+    coverage run -m pytest -vvv
+    coverage xml --quiet
+    coverage report --no-skip-covered --include 'tests/*' --fail-under 100
+    coverage report --no-skip-covered --include 'src/*'
 """
 
 [tool.poe.tasks.lint]
@@ -69,75 +80,15 @@ control.expr = "sys.platform"
 case = "win32"
 shell = """
     echo '=== pre-commit checks ==='
-    SKIP=identity uv run pre-commit run --all-files --hook-stage pre-commit
+    SKIP=identity pre-commit run --all-files --hook-stage pre-commit
     echo '=== pre-push checks ==='
-    SKIP=identity uv run pre-commit run --all-files --hook-stage pre-push
+    SKIP=identity pre-commit run --all-files --hook-stage pre-push
 """
 
 [[tool.poe.tasks.lint.switch]]
 shell = """
     echo '\\033[0;34mpre-commit checks\\033[0m'
-    SKIP=identity uv run pre-commit run --all-files --hook-stage pre-commit
+    SKIP=identity pre-commit run --all-files --hook-stage pre-commit
     echo '\\033[0;34mpre-push checks\\033[0m'
-    SKIP=identity uv run pre-commit run --all-files --hook-stage pre-push
+    SKIP=identity pre-commit run --all-files --hook-stage pre-push
 """
-
-
-[tool.pytest.ini_options]
-markers = "integration"
-testpaths = ["tests"]
-
-[tool.coverage]
-run.plugins = ["covdefaults"]  # https://youtu.be/70T6OxKwxm0
-report.fail_under = 80
-report.exclude_lines = [
-    "@pytest.mark.skip",
-    "@pytest.mark.xfail",
-]
-
-
-[tool.ruff]
-line-length = 80
-indent-width = 4
-target-version = "py311"
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
-
-[tool.ruff.lint]
-select = [
-    "ANN",   # flake8-annotations
-    "B",     # flake8-bugbear
-    "E",     # pycodestyle-error
-    "F",     # Pyflakes
-    "FURB",  # refurb
-    "I",     # isort
-    "N",     # pep8-naming
-    "PL",    # Pylint
-    "PERF",  # Perflint
-    "RUF",   # Ruff-specific
-    "S",     # flake8-bandit
-    "UP",    # pyupgrade
-    "W",     # pycodestyle-warning
-]
-ignore = [
-    "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed
-    "E501",    # Line too long
-]
-fixable = ["ALL"]
-unfixable = []
-# Allow unused variables when underscore-prefixed
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-
-# https://github.com/astral-sh/ruff/issues/4368
-[tool.ruff.lint.extend-per-file-ignores]
-"tests/**/*.py" = [
-    "ANN001",   # Missing type annotation for function argument
-    "ANN201",   # Missing return type annotation for public function
-    "S101",     # Use of `assert` detected
-    "PLR2004",  # Magic value used in comparison
-    "PLR0913",  # Too many arguments in function definition
-]

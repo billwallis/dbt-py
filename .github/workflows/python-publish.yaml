@@ -14,15 +14,20 @@ jobs:
   deploy-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-      - run: uv build
-      - run: uv publish --trusted-publishing always --index testpypi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with: {python-version-file: "pyproject.toml"}
+      - run: pip install build
+      - run: python -m build
+      - uses: pypa/gh-action-pypi-publish@release/v1.14
+        with: {repository-url: https://test.pypi.org/legacy/}
   deploy:
     runs-on: ubuntu-latest
     needs: ["deploy-test"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-      - run: uv build
-      - run: uv publish --trusted-publishing always
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with: {python-version-file: "pyproject.toml"}
+      - run: pip install build
+      - run: python -m build
+      - uses: pypa/gh-action-pypi-publish@release/v1.14

@@ -18,8 +18,7 @@ from dbt.context.base import get_context_modules as _get_context_modules
 import dbt_py.config
 import dbt_py.exceptions
 
-PROJECT_ROOT = pathlib.Path(__file__).parent.parent
-
+PROJECT_ROOT = pathlib.Path(__file__).parent.parent.parent
 JSON = str
 
 
@@ -97,6 +96,7 @@ def main(config_root: str = ".") -> None:
 
     if result.success:
         raise SystemExit(0)
-    if result.exception is None:
+    elif result.exception is None:
         raise SystemExit(1)
-    raise SystemExit(2)
+    else:
+        raise SystemExit(2)
